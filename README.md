@@ -1,1 +1,1 @@
-# gs2026-miss-o-espacial
+# gs2026-missao-espacial
