@@ -1,6 +1,6 @@
-#Sistema de Monitoramento Energético Espacial
+Sistema de Monitoramento Energético Espacial
 
-##Integrantes
+Integrantes
 
 | Nome | RM |
 |---|---|
@@ -10,7 +10,7 @@
 
 ---
 
-##Informações Acadêmicas
+Informações Acadêmicas
 
 - **Instituição:** FIAP
 - **Curso:** Ciência da Computação — Turma 1CCPO
@@ -19,7 +19,7 @@
 
 ---
 
-##Sobre o Projeto
+Sobre o Projeto
 
 Sistema inteligente de monitoramento para controle de missões espaciais experimentais, desenvolvido como solução para o desafio **Global Solution 2026 — Soluções em Energias Renováveis e Sustentáveis** da FIAP.
 
@@ -27,7 +27,7 @@ O sistema recebe, interpreta e exibe dados simulados das condições operacionai
 
 ---
 
-##Funcionalidades
+Funcionalidades
 
 - Monitoramento de temperatura, energia, comunicação, módulos e fonte energética (solar, bateria, eólica, nuclear)
 - Geração automática de alertas para condições críticas
@@ -38,7 +38,7 @@ O sistema recebe, interpreta e exibe dados simulados das condições operacionai
 
 ---
 
-##Tecnologias
+Tecnologias
 
 - HTML
 - CSS
@@ -46,7 +46,7 @@ O sistema recebe, interpreta e exibe dados simulados das condições operacionai
 
 ---
 
-##Como usar
+Como usar
 
 1. Faça o download do arquivo `missao.html`
 2. Abra no navegador
