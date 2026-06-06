@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Controle de Missão</title>
+
+    <style>
+        body {
+            background: black;
+            color: lime;
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px;
+            background: black;
+            color: lime;
+            border: 1px solid lime;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: lime;
+            color: black;
+        }
+
+        input, select {
+            margin: 5px;
+            padding: 5px;
+            background: black;
+            color: lime;
+            border: 1px solid lime;
+        }
+
+        #tela {
+            border: 1px solid lime;
+            padding: 10px;
+            height: 300px;
+            overflow: auto;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alerta {
+            color: red;
+        }
+
+        .acao {
+            color: yellow;
+        }
+
+        .ok {
+            color: lime;
+        }
+
+        label {
+            font-size: 13px;
+        }
+
+        h2 {
+            color: lime;
+            border-bottom: 1px solid lime;
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Controle de Missão Espacial</h1>
+<p>Sistema de monitoramento de energia renovável - missão experimental</p>
+
+<h2>Adicionar Leitura</h2>
+
+<label>Temperatura (°C):</label>
+<input type="number" id="temp" placeholder="Ex: 75"><br>
+
+<label>Energia (%):</label>
+<input type="number" id="energia" placeholder="Ex: 85"><br>
+
+<label>Comunicação:</label>
+<select id="comm">
+    <option value="1">Ativa (1)</option>
+    <option value="0">Falha (0)</option>
+</select><br>
+
+<label>Módulo:</label>
+<input type="text" id="modulo" placeholder="Ex: Painel Solar A"><br>
+
+<label>Status do Módulo:</label>
+<select id="statusModulo">
+    <option value="OK">OK</option>
+    <option value="Falha">Falha</option>
+    <option value="Manutenção">Manutenção</option>
+</select><br>
+
+<label>Fonte de Energia:</label>
+<select id="fonte">
+    <option value="Solar">Solar</option>
+    <option value="Bateria">Bateria</option>
+    <option value="Eólica">Eólica</option>
+    <option value="Nuclear">Nuclear</option>
+</select><br>
+
+<br>
+<button onclick="adicionar()">Adicionar</button>
+<button onclick="status()">Status</button>
+<button onclick="historico()">Histórico</button>
+<button onclick="analise()">Análise</button>
+<button onclick="limpar()">Limpar Tela</button>
+<button onclick="encerrar()">Encerrar</button>
+
+<h2>Terminal da Missão</h2>
+<div id="tela">
+    Sistema iniciado. Aguardando leituras...<br>
+    Fontes de energia suportadas: Solar, Bateria, Eólica, Nuclear.
+</div>
+
+<script>
+
+    // Linked list com arrays paralelos (como ensinado em aula)
+    let valores = [];
+    let proximo = [];
+    let inicio = -1;
+    let ultimaLeitura = null;
+    let totalAlertas = 0;
+
+    function escrever(texto, tipo) {
+        let div = document.getElementById("tela");
+        let classe = tipo || "ok";
+        div.innerHTML += "<br><span class='" + classe + "'>" + texto + "</span>";
+        div.scrollTop = div.scrollHeight;
+    }
+
+    function adicionar() {
+
+        let temperatura = Number(document.getElementById("temp").value);
+        let energia = Number(document.getElementById("energia").value);
+        let comm = Number(document.getElementById("comm").value);
+        let modulo = document.getElementById("modulo").value;
+        let statusModulo = document.getElementById("statusModulo").value;
+        let fonte = document.getElementById("fonte").value;
+
+        if (isNaN(temperatura) || isNaN(energia) || modulo === "") {
+            escrever("⚠ Preencha todos os campos.", "alerta");
+            return;
+        }
+
+        let novoIndice = valores.length;
+        valores.push({ temp: temperatura, energia: energia, comm: comm, modulo: modulo, status: statusModulo, fonte: fonte });
+        proximo.push(-1);
+
+        if (inicio === -1) {
+            inicio = novoIndice;
+        } else {
+            let atual = inicio;
+            while (proximo[atual] !== -1) {
+                atual = proximo[atual];
+            }
+            proximo[atual] = novoIndice;
+        }
+
+        ultimaLeitura = valores[novoIndice];
+
+        escrever("Leitura adicionada: Módulo=" + modulo + " | Temp=" + temperatura + "°C | Energia=" + energia + "% | Fonte=" + fonte + " | Status=" + statusModulo, "ok");
+
+        // Alertas + ações automatizadas
+        if (temperatura > 80) {
+            escrever("ALERTA: Superaquecimento detectado no módulo " + modulo + "!", "alerta");
+            escrever("⚙ AÇÃO: Sistema de resfriamento emergencial ativado.", "acao");
+            totalAlertas++;
+        } else if (temperatura > 60) {
+            escrever("⚠ AVISO: Temperatura elevada no módulo " + modulo + ". Monitorando.", "acao");
+        }
+
+        if (energia < 20) {
+            escrever("ALERTA: Energia crítica (" + energia + "%)!", "alerta");
+            escrever("⚙ AÇÃO: Modo econômico ativado. Sistemas não essenciais desligados.", "acao");
+            totalAlertas++;
+        } else if (energia < 30) {
+            escrever("⚠ AVISO: Energia baixa (" + energia + "%). Trocando para " + (fonte === "Solar" ? "bateria reserva" : "painel solar auxiliar") + ".", "acao");
+        }
+
+        if (comm === 0) {
+            escrever("ALERTA: Falha de comunicação no módulo " + modulo + "!", "alerta");
+            escrever("⚙ AÇÃO: Tentando reconexão automática via canal secundário.", "acao");
+            totalAlertas++;
+        }
+
+        if (statusModulo === "Falha") {
+            escrever("ALERTA: Módulo " + modulo + " com status de FALHA!", "alerta");
+            escrever("⚙ AÇÃO: Módulo isolado. Redistribuindo carga para módulos ativos.", "acao");
+            totalAlertas++;
+        } else if (statusModulo === "Manutenção") {
+            escrever("⚠ AVISO: Módulo " + modulo + " em manutenção. Operação limitada.", "acao");
+        }
+
+        if (fonte === "Solar" && energia > 80) {
+            escrever("♻ INFO: Painel solar operando com alta eficiência. Excedente sendo armazenado na bateria.", "ok");
+        }
+    }
+
+    function status() {
+
+        if (ultimaLeitura == null) {
+            escrever("Sem dados registrados ainda.", "acao");
+            return;
+        }
+
+        escrever("--- STATUS ATUAL ---", "ok");
+        escrever("Módulo: " + ultimaLeitura.modulo, "ok");
+        escrever("Temperatura: " + ultimaLeitura.temp + "°C", "ok");
+        escrever("Energia: " + ultimaLeitura.energia + "%", "ok");
+        escrever("Comunicação: " + (ultimaLeitura.comm === 1 ? "Ativa" : "Falha"), ultimaLeitura.comm === 1 ? "ok" : "alerta");
+        escrever("Fonte: " + ultimaLeitura.fonte, "ok");
+        escrever("Status: " + ultimaLeitura.status, ultimaLeitura.status === "OK" ? "ok" : "alerta");
+    }
+
+    function historico() {
+
+        escrever("--- HISTÓRICO DE LEITURAS ---", "ok");
+
+        let atual = inicio;
+        let i = 1;
+
+        while (atual !== -1) {
+            let v = valores[atual];
+            escrever(i + ". [" + v.modulo + "] T:" + v.temp + "°C | E:" + v.energia + "% | Fonte:" + v.fonte + " | Status:" + v.status, "ok");
+            atual = proximo[atual];
+            i++;
+        }
+
+        if (i === 1) {
+            escrever("Nenhuma leitura registrada.", "acao");
+        }
+    }
+
+    function analise() {
+
+        if (inicio === -1) {
+            escrever("Sem dados para análise.", "acao");
+            return;
+        }
+
+        let somaTemp = 0;
+        let somaEnergia = 0;
+        let cont = 0;
+        let tempAnterior = null;
+        let tendencia = "estável";
+        let contSolar = 0;
+        let contBateria = 0;
+        let contFalhas = 0;
+
+        let atual = inicio;
+
+        while (atual !== -1) {
+            let v = valores[atual];
+            somaTemp += v.temp;
+            somaEnergia += v.energia;
+
+            if (tempAnterior !== null && v.temp > tempAnterior) {
+                tendencia = "subindo";
+            } else if (tempAnterior !== null && v.temp < tempAnterior) {
+                tendencia = "descendo";
+            }
+            tempAnterior = v.temp;
+
+            if (v.fonte === "Solar") contSolar++;
+            if (v.fonte === "Bateria") contBateria++;
+            if (v.status === "Falha") contFalhas++;
+
+            cont++;
+            atual = proximo[atual];
+        }
+
+        let mediaTemp = somaTemp / cont;
+        let mediaEnergia = somaEnergia / cont;
+
+        escrever("--- ANÁLISE DA MISSÃO ---", "ok");
+        escrever("Total de leituras: " + cont, "ok");
+        escrever("Média de Temperatura: " + mediaTemp.toFixed(1) + "°C", "ok");
+        escrever("Tendência de Temperatura: " + tendencia, tendencia === "subindo" ? "acao" : "ok");
+        escrever("Média de Energia: " + mediaEnergia.toFixed(1) + "%", "ok");
+        escrever("Leituras com fonte Solar: " + contSolar + " | Bateria: " + contBateria, "ok");
+        escrever("Total de módulos com falha: " + contFalhas, contFalhas > 0 ? "alerta" : "ok");
+        escrever("Total de alertas gerados: " + totalAlertas, totalAlertas > 0 ? "alerta" : "ok");
+
+        // Classificação de risco
+        if (mediaTemp > 70 || mediaEnergia < 25) {
+            escrever("⚠ RISCO OPERACIONAL: ALTO", "alerta");
+        } else if (mediaTemp > 50 || mediaEnergia < 50) {
+            escrever("⚠ RISCO OPERACIONAL: MÉDIO", "acao");
+        } else {
+            escrever("RISCO OPERACIONAL: BAIXO - Missão estável", "ok");
+        }
+
+        // Eficiência energética sustentável
+        if (contSolar > contBateria) {
+            escrever("♻ Eficiência sustentável: Missão priorizando energia solar.", "ok");
+        } else {
+            escrever("⚠ Sustentabilidade: Missão dependendo mais de bateria que de fontes renováveis.", "acao");
+        }
+    }
+
+    function limpar() {
+        document.getElementById("tela").innerHTML = "Tela limpa. Sistema ativo.";
+    }
+
+    function encerrar() {
+        escrever("--- ENCERRANDO MISSÃO ---", "acao");
+        escrever("Total de leituras registradas: " + valores.length, "ok");
+        escrever("Total de alertas: " + totalAlertas, totalAlertas > 0 ? "alerta" : "ok");
+        escrever("Sistema encerrado.", "acao");
+        document.querySelectorAll("button").forEach(function(b) {
+            b.disabled = true;
+        });
+    }
+
+</script>
+
+</body>
+</html>
