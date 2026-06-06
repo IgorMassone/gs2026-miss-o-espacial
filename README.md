@@ -48,7 +48,7 @@ Tecnologias
 
 Como usar
 
-1. Faça o download do arquivo `missao.html`
+1. Faça o download do arquivo `missao_experimental.html`
 2. Abra no navegador
 3. Preencha os campos com os dados da leitura e clique em **Adicionar**
 4. Use os botões **Status**, **Histórico** e **Análise** para monitorar a missão
